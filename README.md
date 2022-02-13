@@ -1,15 +1,15 @@
 synopsis:
 
-		This program is for finding metal and base pair interactions.
+		This program is for finding metal and water interactions.
 
 
 install:
 	Download at least all the files of sys and bin directory.
-	Transfer the 'bin/metallic' executable file to some path folder
+	Transfer the 'bin/aquamet.linux' executable file to some path folder
 	and transfer all the files of 'sys' folder to some suitable location.
 	We prefer the following.
 
-		sudo cp bin/metbp.linux   /usr/local/bin/
+		sudo cp bin/aquamet.linux   /usr/local/bin/
 
 		sudo cp sys/*   /usr/local/bin/
 
@@ -24,11 +24,11 @@ setup:
 
 run:
 
-	metbp.linux [OPTIONS] [mmCIF/PDB]
+	aquamet.linux [OPTIONS] [mmCIF/PDB]
 
 example:
 
-		metallic 1ehz.cif
+		aquamet.linux 1ehz.cif
 
 bug-report:
 

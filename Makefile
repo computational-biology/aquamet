@@ -7,7 +7,7 @@ CC := cc # This is the main compiler
 FF := gfortran
 SRCDIR := src
 BUILDDIR := build
-TARGET := bin/metbp.linux
+TARGET := bin/aquamet.linux
 LINKCC := cc
  
 SRCEXT := c
