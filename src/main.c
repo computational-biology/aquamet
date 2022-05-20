@@ -495,23 +495,23 @@ int main(int argc, char* argv[]) {
 		  file_name_join(hohdetail_file, file_path, file_name, "_detail.hoh");
 		  
 
-		  runpar.metalfp	= fopen( met_file, "w" );
-		  if ( runpar.metalfp == NULL ) {
-			fprintf ( stderr, "couldn't open file '%s'; %s\n",
-				    met_file, strerror(errno) );
-			exit (EXIT_FAILURE);
-		  }
+//		  runpar.metalfp	= fopen( met_file, "w" );
+//		  if ( runpar.metalfp == NULL ) {
+//			fprintf ( stderr, "couldn't open file '%s'; %s\n",
+//				    met_file, strerror(errno) );
+//			exit (EXIT_FAILURE);
+//		  }
 		  
 
 		  
 		  
 
-		  runpar.metdetailfp	= fopen( metdetail_file, "w" );
-		  if ( runpar.metdetailfp == NULL ) {
-			fprintf ( stderr, "couldn't open file '%s'; %s\n",
-				    metdetail_file, strerror(errno) );
-			exit (EXIT_FAILURE);
-		  }
+//		  runpar.metdetailfp	= fopen( metdetail_file, "w" );
+//		  if ( runpar.metdetailfp == NULL ) {
+//			fprintf ( stderr, "couldn't open file '%s'; %s\n",
+//				    metdetail_file, strerror(errno) );
+//			exit (EXIT_FAILURE);
+//		  }
 		  
 		  
  
@@ -532,7 +532,7 @@ int main(int argc, char* argv[]) {
 		  }
 		  
 		  
-		  fprintf(runpar.metalfp, "mmCIF        : %s\n",file_name);
+		  //fprintf(runpar.metalfp, "mmCIF        : %s\n",file_name);
 	    
 		  comp_metal_sites(&metal, &hoh, &rna, &bp, &nuparm, &pro, &metparams, &sec, rule,
 			      file_path, file_name, &runpar, &syspar);
@@ -553,17 +553,17 @@ int main(int argc, char* argv[]) {
 		  }
 		  
 
-		  if( fclose(runpar.metdetailfp) == EOF ) {			/* close output file   */
-			fprintf ( stderr, "couldn't close file '%s'; %s\n",
-				    metdetail_file, strerror(errno) );
-			exit (EXIT_FAILURE);
-		  }
+//		  if( fclose(runpar.metdetailfp) == EOF ) {			/* close output file   */
+//			fprintf ( stderr, "couldn't close file '%s'; %s\n",
+//				    metdetail_file, strerror(errno) );
+//			exit (EXIT_FAILURE);
+//		  }
 
-		  if( fclose(runpar.metalfp) == EOF ) {			/* close output file   */
-			fprintf ( stderr, "couldn't close file '%s'; %s\n",
-				    met_file, strerror(errno) );
-			exit (EXIT_FAILURE);
-		  }
+//		  if( fclose(runpar.metalfp) == EOF ) {			/* close output file   */
+//			fprintf ( stderr, "couldn't close file '%s'; %s\n",
+//				    met_file, strerror(errno) );
+//			exit (EXIT_FAILURE);
+//		  }
 
 	    }else{
 		  fprintf(runpar.summaryfp, "\n\n           No metal found. Computation ends.\n");

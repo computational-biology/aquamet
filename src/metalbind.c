@@ -1440,7 +1440,7 @@ void comp_metal_sites(struct molecule* met,
 
       for(int i=0; i<nsites; ++i){
 	    if(i == 0){
-		  /*fprintf(runpar->summaryfp, "\n\n\n\n            +---------------------- S U M M A R Y  R E P O R T "
+		  fprintf(runpar->summaryfp, "\n\n\n\n            +---------------------- S U M M A R Y  R E P O R T "
 			      "---------------------+\n\n\n\n");
 		  fprintf(runpar->summaryfp, "      |  Metal Detail  |   Inner Coordination     |     Water Mediated "
 			      "         |\n");
@@ -1448,23 +1448,23 @@ void comp_metal_sites(struct molecule* met,
 		  fprintf(runpar->summaryfp, "      ---------------------------------------------------------------------------\n");
 		  fprintf(runpar->summaryfp, "       resid  chn  mtl  cord   NUC  PRO  H2O  MET    cnt     NUC  PRO  H2O  MET \n");
 		  fprintf(runpar->summaryfp, "      ---------------------------------------------------------------------------\n");
-	    */
 	    
-	    fprintf(runpar->summaryfp, "\n\n\n\n            +---------------------- S U M M A R Y  R E P O R T "
+	    
+/*	    fprintf(runpar->summaryfp, "\n\n\n\n            +---------------------- S U M M A R Y  R E P O R T "
 			      "---------------------+\n\n\n\n");
 		  fprintf(runpar->summaryfp, "      |  Metal Detail  |   Inner Coordination     "
 			      "         |\n");
 
 		  fprintf(runpar->summaryfp, "      ---------------------------------------------\n");
 		  fprintf(runpar->summaryfp, "       resid  chn  mtl  cord   NUC  PRO  H2O  MET \n");
-		  fprintf(runpar->summaryfp, "      ---------------------------------------------\n");
+		  fprintf(runpar->summaryfp, "      ---------------------------------------------\n");*/
 	   
 	    }
 	    site_fprint_summary(sites+i,runpar->summaryfp);
       }
       fprintf(runpar->summaryfp, "#\n");
-      fprintf(runpar->metalfp, "\n\n\n\n        +--------------------- D E T A I L  R E P O R T "
-		  "---------------------+\n\n\n\n");
+      //fprintf(runpar->metalfp, "\n\n\n\n        +--------------------- D E T A I L  R E P O R T "
+	//	  "---------------------+\n\n\n\n");
 
       int* bparray = (int*) malloc (nsites * sizeof(int));
       for(int k=0; k<nsites; ++k){
@@ -1472,7 +1472,7 @@ void comp_metal_sites(struct molecule* met,
 	    bparray[k] = 0;
       }
       int flag=0;
-      for(int i=0; i<nsites; ++i){
+      /*for(int i=0; i<nsites; ++i){
 	    int bpflag = 0;
 	    site_fprint_basepair(sites+i,runpar->metalfp, rnabp, &flag, runpar->detailflag, &bpflag, runpar->allbaseflag);
 	    if(bpflag == 1){
@@ -1503,11 +1503,12 @@ void comp_metal_sites(struct molecule* met,
 	    site_fprint_angle(sites+i,runpar->metdetailfp);
 	    //        sites[i].fprint_wmed(fp);
       }
+*/
 
-      char pmlfp_file_name[512];
+/*      char pmlfp_file_name[512];
       file_name_join(pmlfp_file_name, file_path, file_name, ".pml");
 
-      FILE	*pmlfp;										/* output-file pointer */
+      FILE	*pmlfp;										
 
       pmlfp	= fopen( pmlfp_file_name, "w" );
       if ( pmlfp == NULL ) {
@@ -1530,10 +1531,10 @@ void comp_metal_sites(struct molecule* met,
       fprintf(pmlfp, "set cartoon_ladder_mode, 0, polyall\n");
       fprintf(pmlfp, "show cartoon, polyall\n");
 
-      /*    fprintf(pmlfp, "select protein, polymer.protein\n");
-	    fprintf(pmlfp, "select nucleic, polymer.nucleic\n");
-	    fprintf(pmlfp, "select water, solvent\n");
-	    fprintf(pmlfp, "show cartoon, %s\n", file_name);*/
+      //    fprintf(pmlfp, "select protein, polymer.protein\n");
+	  //  fprintf(pmlfp, "select nucleic, polymer.nucleic\n");
+	  //  fprintf(pmlfp, "select water, solvent\n");
+	  //  fprintf(pmlfp, "show cartoon, %s\n", file_name);
       for(int i=0; i<nsites; ++i){
 	    if(runpar->detailflag == 0 && bparray[i] == 0) continue; 
 	    if(runpar->detailflag == 1 && bparray[i] == 0) continue; 
@@ -1541,11 +1542,11 @@ void comp_metal_sites(struct molecule* met,
 
       }
 
-      if( fclose(pmlfp) == EOF ) {			/* close output file   */
+      if( fclose(pmlfp) == EOF ) {			
 	    fprintf ( stderr, "couldn't close file '%s'; %s\n",
 			pmlfp_file_name, strerror(errno) );
 	    exit (EXIT_FAILURE);
-      }
+      }  */
 
 
 
