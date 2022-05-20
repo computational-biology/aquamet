@@ -106,7 +106,7 @@ void site_fprint_summary(struct site* self, FILE* fp){
 		  exit(EXIT_FAILURE);
 	    }
       }
-     /* fprintf(fp, "SUMM  %6d  %-3s  %-3s  %3d =  %3d  %3d  %3d  %3d    %3d  =  %3d  %3d  %3d  %3d\n",
+      fprintf(fp, "SUMM  %6d  %-3s  %-3s  %3d =  %3d  %3d  %3d  %3d    %3d  =  %3d  %3d  %3d  %3d\n",
 		  self->metal->resid,
 		  self->metal->chain,
 		  self->metal->resname,
@@ -117,7 +117,6 @@ void site_fprint_summary(struct site* self, FILE* fp){
 		  wmwcount,
 		  wmmcount
 		  );
-		  */
 		  
 		  fprintf(fp, "SUMM  %6d  %-3s  %-3s  %3d =  %3d  %3d  %3d  %3d\n",
 		  self->metal->resid,
@@ -127,6 +126,128 @@ void site_fprint_summary(struct site* self, FILE* fp){
 		  );
 }
 
+void site_fprint_wmed_bporient(struct site* self, FILE *fp, struct rnabp *bp, struct nuparm* nuparm, int *flag, int detail_flag, int* bpflag,
+	    int allbaseflag){
+      if(bp == NULL) return;
+
+      //int resindx1;
+      //int link = 80;
+
+
+
+      /*for(int i=0; i<ligand.size; ++i){
+	if(ligand.restype[i] == 'W'){
+	resindx1 = ligand.resindx[i];
+	if(bp->bp[resindx1].numbp > 0){
+	link++;
+	}
+	}
+	}*/
+      int tag  = 0;
+      int previndex = -999;
+      for(int i=0; i<self->wmed.size; ++i){
+	    int windx = self->wmed.waterindx[i];
+
+	    struct atom* water = self->ligand.mol[windx]->residue[self->ligand.resindx[windx]].atom+ self->ligand.offset[windx];
+	    if(self->wmed.ligand.restype[i] != 'N') continue;
+
+	    struct molecule* mol = self->wmed.ligand.mol[i];
+	    int resindx = self->wmed.ligand.resindx[i];
+	    int offset  = self->wmed.ligand.offset[i];
+	    struct atom* atm = mol->residue[resindx].atom + offset;
+	    if(atm->resid != bp->bp[resindx].cifid){
+		  fprintf(stderr, "Error... invalid mapping in RNA and Basepair...\n");
+		  exit(EXIT_FAILURE);
+	    }
+	    if(allbaseflag == 0){
+		  if(bp->bp[resindx].numbp <= 0) continue;
+	    }
+	    char location[5] = "---";
+	    if(self->wmed.ligand.loc[i] == 'N'){
+		  strcpy(location,"NUC");
+	    }else if(self->wmed.ligand.loc[i] == 'P'){
+		  strcpy(location, "PHP");
+	    }else if(self->wmed.ligand.loc[i] == 'S'){
+		  strcpy(location, "SUG");
+	    }
+	    else{
+		  fprintf(stderr, "Error in function %s()... invalid ligand type found.\n", __func__);
+		  exit(EXIT_FAILURE);
+	    }
+	    if(detail_flag == 0){
+		  if(strcmp(location, "PHP") ==0) continue;
+		  if(strcmp(location, "SUG") == 0 && strcmp(atm->loc,"O2*") != 0) continue;
+
+	    }
+
+	    if(*flag == 0){
+		  *flag = 1;
+		    fprintf(fp, "  |     Metal    | Water      |      Base Pair Details        |                 outcome             |\n");
+		    fprintf(fp, "  |    Detail    |  Details   |\n");
+  fprintf(fp, "  ---------------------------------------------------------------------------------------------------\n");
+  fprintf(fp, "      id ch  mtl   id  ch  res lc res atm  id ch    id chn   base-pair E-Val   M-W   W-N   ang\n");
+  fprintf(fp, "  ---------------------------------------------------------------------------------------------------\n");
+//		  fprintf(fp, "\n\n      |  Metal Detail   | Water Details   |      Base Pair Details                  |"
+//			      "  outcome      "
+//			      "    |\n");
+//		  fprintf(fp,      "      "
+//			      "---------------------------------------------------------------------------------------------------\n");
+//		  fprintf(fp, "       resid  chn  mtl    resid  chn  res  loc  res  atm   resid  chn   resid  chn     pair------>> "
+//			      "\n");
+//		  fprintf(fp, "      "
+//			      "---------------------------------------------------------------------------------------------------\n");
+
+
+	    }
+	    tag = 1;
+	    *bpflag = 1;
+	    if(resindx != previndex){
+		  previndex = resindx;
+		  if(bp->bp[resindx].numbp > 0){
+		  //fprintf(fp, "ST %5d %-3s %-3s %5d %-3s %-3s %c %3s  %-3s",
+		  fprintf(fp, "ST %-3s -- %-3s %3s (%-3s) ",
+			      //self->metal->resid,
+			      //self->metal->chain,
+			      self->metal->resname,
+			      //water->resid,
+			      //water->chain,
+			      water->resname,
+			      //location[0],
+			      atm->resname,
+			      atm->loc);
+
+		  if(allbaseflag == 0){
+			bp_fprint(bp->bp+resindx,fp);
+			
+		  }else{
+			if(bp->bp[resindx].numbp <= 0){
+			      ;//fprintf(fp, "    ~~  ~        ~~  ~       ~~~~~~~~    ~~~~  ");
+			}else{
+			      bp_fprint(bp->bp+resindx,fp);
+			}
+		  }
+		  fprintf(fp, "%6.3lf  %6.3lf  %6.3lf  %6.3lf  %6.3lf  %6.3lf", 
+			      nuparm->orient[resindx].buckle,
+			      nuparm->orient[resindx].open,
+			      nuparm->orient[resindx].propel,
+			      nuparm->orient[resindx].stagger,
+			      nuparm->orient[resindx].shear,
+			      nuparm->orient[resindx].stretch);
+		  fprintf(fp, "\n");
+		  }
+	    }
+	    //fprintf(fp,"\n");
+
+      }
+
+      //fprintf(fp, "WMBP  %6d  %-3s  %-3s\n",
+      //        water->resid,
+      //        water->chain,
+      //        water->resname);
+      if(tag == 1)
+	    fprintf(fp,"\n");
+
+}
 void site_fprint_wmed_basepair(struct site* self, FILE *fp, struct rnabp *bp, int *flag, int detail_flag, int* bpflag,
 	    int allbaseflag){
       if(bp == NULL) return;
@@ -182,30 +303,50 @@ void site_fprint_wmed_basepair(struct site* self, FILE *fp, struct rnabp *bp, in
 
 	    if(*flag == 0){
 		  *flag = 1;
-		  fprintf(fp, "\n\n      |  Metal Detail   | Water Details   |      Base Pair Details                  |"
-			      "  outcome      "
-			      "    |\n");
-		  fprintf(fp,      "      "
-			      "---------------------------------------------------------------------------------------------------\n");
-		  fprintf(fp, "       resid  chn  mtl    resid  chn  res  loc  res  atm   resid  chn   resid  chn     pair------>> "
-			      "\n");
-		  fprintf(fp, "      "
-			      "---------------------------------------------------------------------------------------------------\n");
+		    fprintf(fp, "  |     Metal    | Water |   Base1      | Atom, Met-H2O & H2O-Atom  |       Base2 pair                 |\n");
+		    fprintf(fp, "  |    Detail    | Detail|   Details    | dist & Met-H2O-Atom Algle |       Details                    |\n");
+  fprintf(fp, "  ------------------------------------------------------------------------------------------------------\n");
+  fprintf(fp, "      id ch  mtl  id  ch   res  ch   res atm lc  M-W   W-A   ang     bp      id ch    base-pair Q-Indx |\n");
+  fprintf(fp, "  ------------------------------------------------------------------------------------------------------\n");
+//		  fprintf(fp, "\n\n      |  Metal Detail   | Water Details   |      Base Pair Details                  |"
+//			      "  outcome      "
+//			      "    |\n");
+//		  fprintf(fp,      "      "
+//			      "---------------------------------------------------------------------------------------------------\n");
+//		  fprintf(fp, "       resid  chn  mtl    resid  chn  res  loc  res  atm   resid  chn   resid  chn     pair------>> "
+//			      "\n");
+//		  fprintf(fp, "      "
+//			      "---------------------------------------------------------------------------------------------------\n");
 
 
 	    }
 	    tag = 1;
 	    *bpflag = 1;
-	    fprintf(fp, "WMBP  %6d  %-3s  %-3s   %6d  %-3s  %-3s  %-3s  %3s  %-3s  ",
+	    fprintf(fp, "WM %5d %-3s %-3s %5d %-3s  %5d %-3s %3s %-3s %c",
 			self->metal->resid,
 			self->metal->chain,
 			self->metal->resname,
 			water->resid,
 			water->chain,
-			water->resname,
-			location,
+//			water->resname,
+			
+			atm->resid,
+			atm->chain,
 			atm->resname,
-			atm->loc);
+			atm->loc,
+			location[0]);
+			
+			fprintf(fp, "  %4.2lf", dist(self->metal->center, water->center));
+		    fprintf(fp, "  %4.2lf", dist(water->center, atm->center));
+
+	        fprintf(fp, "  %6.2lf", todeg(angle3d(self->metal->center, water->center, atm->center)));
+	          
+		     if(bp->bp[resindx].numbp <= 0){
+		       fprintf(fp, "  NP\n");
+		       continue;
+	        }else{
+		       fprintf(fp, "  BP  ");
+		    }
 
 	    if(allbaseflag == 0){
 		  bp_fprint(bp->bp+resindx,fp);
@@ -216,7 +357,7 @@ void site_fprint_wmed_basepair(struct site* self, FILE *fp, struct rnabp *bp, in
 			bp_fprint(bp->bp+resindx,fp);
 		  }
 	    }
-
+		
 	    fprintf(fp, "\n");
 	    //fprintf(fp,"\n");
 
@@ -1255,6 +1396,7 @@ void comp_metal_sites(struct molecule* met,
 	    struct molecule* hoh,
 	    struct molecule* rna,
 	    struct rnabp* rnabp,
+	    struct nuparm* nuparm,
 	    struct molecule* pro,
 	    struct parameters* prm,
 	    struct structure* sec,
@@ -1267,6 +1409,8 @@ void comp_metal_sites(struct molecule* met,
       struct atom** met_atoms = (struct atom**) malloc (nsites * sizeof(struct atom*)); //new struct atom*[nsites];
       int count; // should be same as nsites;
       //    met->get_all_atoms(met_atoms, &count);
+
+      
       mol_get_all_atoms(met, met_atoms, &count);
       struct site* sites = (struct site*) malloc ( nsites * sizeof(struct site));
       //struct site* sites = new struct site[nsites];//(struct Site*) malloc(met->size * sizeof(struct Site));
@@ -1404,8 +1548,8 @@ void comp_metal_sites(struct molecule* met,
       }
 
 
-/*  From here open for water mediated.
 
+      
       for(int k=0; k<nsites; ++k){
 
 	    bparray[k] = 0;
@@ -1417,6 +1561,17 @@ void comp_metal_sites(struct molecule* met,
 	    site_fprint_wmed_basepair(sites+i,runpar->hohfp, rnabp, &flag, runpar->detailflag, &bpflag, runpar->allbaseflag);
 	    if(bpflag == 1){
 		  bparray[i] = 1;
+	    }
+      }
+
+      if(syspar->nuparm_bp == 'T'){
+	    flag=0;
+	    for(int i=0; i<nsites; ++i){
+		  int bpflag = 0;
+		  site_fprint_wmed_bporient(sites+i, runpar->hohfp, rnabp, nuparm, &flag, runpar->detailflag, &bpflag, runpar->allbaseflag);
+		  if(bpflag == 1){
+			bparray[i] = 1;
+		  }
 	    }
       }
       flag=0;
@@ -1452,7 +1607,6 @@ void comp_metal_sites(struct molecule* met,
       //    rnamap.gen_verna(nuc_file);
 
 
-  up to here for water mediated. */
       free(bparray);
       bparray = NULL;
 

@@ -12,6 +12,10 @@
 #include "metalbind.h"
 #include "tree.h"
 #include "sysparams.h"
+#include "libnuparm.h"
+#include "fetch.h"
+
+extern void callnuparmc(char*, char*);
 
 extern void callbpfindc(char [],  char [], char [], char [], char [], char [], char [], char [], char [], char [], char [], char[], char[], char[], char[]);
 void show_help();
@@ -27,6 +31,7 @@ int main(int argc, char* argv[]) {
       struct runparams runpar;
       runpar.detailflag = 0;
       runpar.allbaseflag = 0;
+      int input_file_flag = 0;
 
       char* nucdir = getenv("NUCLEIC_ACID_DIR");
       if(nucdir == NULL){
@@ -42,38 +47,47 @@ int main(int argc, char* argv[]) {
       strcat(param_path, "metal.params");
       struct parameters metparams;
       parameters_create(&metparams, param_path);
-      printf("Welcome to Metal Detection Program!\n");
+      printf("Running Aquamet. A orgram to detect water mediated metal-nucleic acid interactions.\n");
 
-      char file_array[1000][512];
+      char file_array[3000][512];
       char arg[512];
       int file_count = 0;
       for (int i = 1; i < argc; ++i) {
 
 	    strcpy(arg, argv[i]);
-	    if(strncmp(arg, "--help", 6) == 0 ){
+	    if(strcmp(arg, "-help") == 0 ){
 		  show_help();
 		  exit(EXIT_SUCCESS);
 	    	  
 	    }
-	    if(strncmp(arg, "--version", 9) == 0 ){
-		  fprintf(stdout, "MetBP Release: %s\n", global_version);
+	    if( strcmp(arg, "-h") == 0 ){
+		  show_help();
+		  exit(EXIT_SUCCESS);
+	    	  
+	    }
+	    if(strcmp(arg, "-ver") == 0 ){
+		  fprintf(stdout, "Aquamet Release: %s\n", global_version);
 		  exit(EXIT_SUCCESS);
 	    }
-	    if(strncmp(arg, "--pub", 5) == 0 ){
-		  fprintf(stdout, "MetBP: The paper is submitted. So, the reference is pending.\n");
+	    if(strcmp(arg, "-pub") == 0 ){
+		  fprintf(stdout, "Aquamet: The paper is submitted. So, the reference is pending.\n");
 		  exit(EXIT_SUCCESS);
 	    }
-	    if(strncmp(arg, "--genhelp", 9) == 0 ){
+	    if(strcmp(arg, "-ghelp") == 0 ){
 		  gen_help();
 		  exit(EXIT_SUCCESS);
 	    }
-	    if(strncmp(arg, "--contact", 9) == 0 ){
+	    if(strcmp(arg, "-mail") == 0 ){
 		  fprintf(stdout, "Parthajit Roy, roy.parthajit@gmail.com\n");
 		  fprintf(stdout, "Dr. Dhananjay Bhattacharyya, dhananjay.bhattacharyya.retd@saha.ac.in\n");
 		  exit(EXIT_SUCCESS);
 	    }
-	    if(strncmp(arg, "-paramfile=", 11) == 0){
-		  parameters_create(&metparams, arg + 11);
+	    if(strcmp(arg, "-dn") == 0){
+		  syspar.download = 1;
+	    }else if(strcmp(arg,"-pr") == 0){
+		  syspar.nuparm_bp = 'T';
+	    }else if(strncmp(arg, "-pf=", 3) == 0){
+		  parameters_create(&metparams, arg + 3);
 	    }else if(strncmp(arg,"-mode=", 6) == 0){
 		  if(strcmp(arg+6, "bp") == 0){
 			runpar.detailflag = 0;
@@ -86,37 +100,70 @@ int main(int argc, char* argv[]) {
 			exit(EXIT_FAILURE);
 		  }
 
-	    }else if(strncmp(arg, "-bponly=", 8)== 0){
-		  if(strcmp(arg+8, "true") == 0){
+	    }else if(strcmp(arg, "-bp") == 0){
 			runpar.allbaseflag = 0;
-		  }else if(strcmp(arg+8,"false") == 0){
-			runpar.allbaseflag = 1;
-		  }else{
-			fprintf(stderr, "Error in function %s()... Invalid value suppled for -comp. Supply \"nuc, bp or all\"\n", __func__);
+	    }else if(strncmp(arg, "-ch=", 4) == 0){
+		  strcpy(syspar.chainparam, "-ML");
+		  strcpy(syspar.chainvalparam,arg+4);
+	    }else if(strncmp(arg, "-md=", 5) == 0){
+		  strcpy(syspar.nmrparam, "-MD");
+		  strcpy(syspar.nmrvalparam,arg+5);
+	    }else if(strncmp(arg, "-hd=", 4) == 0){
+		  strcpy(syspar.hdparam, "-HD");
+		  strcpy(syspar.hdvalparam,arg+4);
+	    }else if(strncmp(arg, "-an=", 4) ==0){
+		  strcpy(syspar.angparam, "-VA");
+		  strcpy(syspar.angvalparam, arg+4);
+	    }else if(strncmp(arg,"-ns", 3) == 0){
+		  strcpy(syspar.sgparam, "-SG");
+	    }else if(strncmp(arg,"-nc", 3) == 0){
+		  strcpy(syspar.chparam, "-CH");
+	    }else if(strncmp(arg, "-nh",3)== 0){
+		  strcpy(syspar.htparam, "-dummyval");
+	    }else if(strncmp(arg, "-if=", 4) == 0){
+
+		  if(input_file_flag == 1){    /* Exception Handling */ 
+			fprintf(stderr, "Error in function %s()... Too many input files supplied.\n", __func__);
 			exit(EXIT_FAILURE);
 		  }
+		  input_file_flag = 1;
+		  
+		  FILE	*pdbfp;										/* input-file pointer */
+		  char	pdbfp_file_name[512];		/* input-file name    */
+		  strcpy(pdbfp_file_name, arg+4);
 
-	    }else if(strncmp(arg, "-chain=", 7) == 0){
-		  strcpy(syspar.chainparam, "-ML");
-		  strcpy(syspar.chainvalparam,arg+7);
-	    }else if(strncmp(arg, "-nmrmdl=", 8) == 0){
-		  strcpy(syspar.chainparam, "-MD");
-		  strcpy(syspar.chainvalparam,arg+8);
-	    }else if(strncmp(arg, "-hbdist=", 8) == 0){
-		  strcpy(syspar.hdparam, "-HD");
-		  strcpy(syspar.hdvalparam,arg+8);
-	    }else if(strncmp(arg, "-cutang=", 8) ==0){
-		  strcpy(syspar.angparam, "-VA");
-		  strcpy(syspar.angvalparam, arg+8);
-	    }else if(strncmp(arg,"-sugmed=false", 13) == 0){
-		  strcpy(syspar.sgparam, "-SG");
-	    }else if(strncmp(arg,"-chmed=false", 12) == 0){
-		  strcpy(syspar.chparam, "-CH");
-	    }else if(strncmp(arg, "-hetatm=false",13)== 0){
-		  strcpy(syspar.htparam, "-dummyval");
+		  pdbfp	= fopen( pdbfp_file_name, "r" );
+		  if ( pdbfp == NULL ) {
+			fprintf ( stderr, "couldn't open file '%s'; %s\n",
+				    pdbfp_file_name, strerror(errno) );
+			exit (EXIT_FAILURE);
+		  }
+		  const int lsize = 512;
+		  char line[512];
+		  char* delim = "\t, \n";
+		  char* token;
+		  while( fgets(line, lsize, pdbfp) != NULL){
+			token = strtok(line, delim);
+			while( token != NULL ){
+			      strcpy(file_array[file_count], token);
+			      file_count++;
+			      token = strtok(NULL, delim);
+			}
+		  }
+		  if( fclose(pdbfp) == EOF ) {			/* close input file   */
+			fprintf ( stderr, "couldn't close file '%s'; %s\n",
+				    pdbfp_file_name, strerror(errno) );
+			exit (EXIT_FAILURE);
+		  }
+	    }else if(arg[0] == '-'){
+		  /* Exception Handling */ 
+		  fprintf(stderr, "Error in function %s()... invalid switch (%s). Please run the program with -h for help.\n", __func__, arg);
+		  exit(EXIT_FAILURE);
 	    }else{
-		  strcpy(file_array[file_count], arg);
-		  file_count++;
+		  if(input_file_flag == 0){
+			strcpy(file_array[file_count], arg);
+			file_count++;
+		  }
 	    }
 
       }
@@ -124,6 +171,13 @@ int main(int argc, char* argv[]) {
 	    show_help();
 	    exit(EXIT_SUCCESS);
       }
+
+
+      if( file_count == 0 ){    /* Exception Handling */ 
+	    fprintf(stderr, "Error in function %s()... no file(s) supplied.\n", __func__);
+	    exit(EXIT_FAILURE);
+      }
+
 
 
 
@@ -148,6 +202,7 @@ int main(int argc, char* argv[]) {
       char fasta_file[512];
       char bpseq_file[512];
       char helix_file[512];
+      char prm_file[512];
       
       char met_file[512];
       char metdetail_file[512];
@@ -160,6 +215,10 @@ int main(int argc, char* argv[]) {
       mol_create(&mol, (int)80000, TRUE, TRUE);
 
       char rule = 'A';
+//      for (int i = 0; i < file_count; ++i) {
+//	    printf("%s\n", file_array[i]);
+//      }
+     
       for (int i = 0; i < file_count; ++i) {
 
 
@@ -177,7 +236,24 @@ int main(int argc, char* argv[]) {
 
 
 	    char file_loc[512];
-	    strcpy(file_loc, file_array[i]); 
+	    char file_loc_tmp[512];
+	    char* pdb_token;
+	    strcpy(file_loc_tmp, file_array[i]); 
+	    pdb_token = strtok(file_loc_tmp, "|");
+
+	    strcpy(file_loc, pdb_token); 
+	    pdb_token = strtok(NULL, "|");
+	    if(pdb_token != NULL){
+		  strcpy(syspar.nmrparam, "-MD");
+		  strcpy(syspar.nmrvalparam, pdb_token);
+
+		  pdb_token = strtok(NULL, "|");
+		  if(pdb_token != NULL){
+			strcpy(syspar.chainparam, "-CH");
+			strcpy(syspar.chainvalparam, pdb_token);
+		  }
+	    }
+
 	    file_name_split(file_path, file_name, ext, file_loc);
 	    strcpy(syspar.accn, file_name);
 	    strcpy(syspar.ext, ext);
@@ -194,6 +270,9 @@ int main(int argc, char* argv[]) {
 	    }
 	    now(time_out);
 	    printf("            CURRENT FILE: %s         STARTED:%d of %d at %s\n", file_name, i+1, file_count, time_out);
+	    if(syspar.download == 1){
+		  fetch_rcsb(syspar.accn);
+	    }
 	    callbpfindc(syspar.cifparam, syspar.accnparam, syspar.htparam, 
 			syspar.hdparam, syspar.hdvalparam, syspar.angparam, 
 			syspar.angvalparam, syspar.chparam, syspar.sgparam, 
@@ -210,8 +289,14 @@ int main(int argc, char* argv[]) {
 	    file_name_join(bpseq_file, file_path, file_name, ".bpseq");
 	    file_name_join(helix_file, file_path, file_name, ".hlx");
 	    file_name_join(fasta_file, file_path, file_name, ".fasta");
+	    file_name_join(prm_file, file_path, file_name, "_rna.prm");
 
 	     
+
+	    
+	    if(syspar.nuparm_bp == 'T'){
+		  callnuparmc(cor_file, out_file);
+	    }
 
 	    char summaryfp_file_name[512];
 	    file_name_join(summaryfp_file_name, file_path, file_name, ".sum");
@@ -235,6 +320,16 @@ int main(int argc, char* argv[]) {
 	    
 	    struct rnabp bp;
 	    rnabp_scanf(&bp, out_file);
+
+	    struct nuparm nuparm;
+	    struct nuparm nupopt;
+	    if(syspar.nuparm_bp == 'T'){
+		  nupopt.flag.is_orient = TRUE;
+		  nupopt.flag.is_step   = FALSE;
+
+		  nuparm_init(&nuparm,bp.nres, &nupopt);
+		  nuparm_read(&nuparm, prm_file);
+	    }
 	    //fprintf(stderr, "Trace..... Executing File %s at line %d.\n", __FILE__, __LINE__);
 	    
 	    //if(bp.nres <50 || bp.nres > 180) continue;
@@ -420,7 +515,6 @@ int main(int argc, char* argv[]) {
 		  
 		  
  
-		  /* Open this part for water mediated
 		  runpar.hohfp	= fopen( hoh_file, "w" );
 		  if ( runpar.hohfp == NULL ) {
 			fprintf ( stderr, "couldn't open file '%s'; %s\n",
@@ -437,15 +531,15 @@ int main(int argc, char* argv[]) {
 			exit (EXIT_FAILURE);
 		  }
 		  
-		  up to this part for water mediated
-		  */
 		  
 		  fprintf(runpar.metalfp, "mmCIF        : %s\n",file_name);
 	    
-		  comp_metal_sites(&metal, &hoh, &rna, &bp,&pro, &metparams, &sec, rule,
+		  comp_metal_sites(&metal, &hoh, &rna, &bp, &nuparm, &pro, &metparams, &sec, rule,
 			      file_path, file_name, &runpar, &syspar);
+			      
+	      //comp_metal_sites(&metal, &hoh, &rna, &bp, &pro, &metparams, &sec, rule,
+			//      file_path, file_name, &runpar, &syspar);
 		  
-		  /*  Open this part for water mediated
 		  if( fclose(runpar.hohdetailfp) == EOF ) {			
 			fprintf ( stderr, "couldn't close file '%s'; %s\n",
 				    hohdetail_file, strerror(errno) );
@@ -458,8 +552,6 @@ int main(int argc, char* argv[]) {
 			exit (EXIT_FAILURE);
 		  }
 		  
-		  Up to  this part for water mediated
-		  */
 
 		  if( fclose(runpar.metdetailfp) == EOF ) {			/* close output file   */
 			fprintf ( stderr, "couldn't close file '%s'; %s\n",
@@ -490,6 +582,7 @@ int main(int argc, char* argv[]) {
 	    mol_free(&hoh);
 
 	    rnabp_free(&bp);
+	    //nuparm_free(&nuparm);
 	    now(time_out);
 //	    printf("Finishing Computation on: %s   at %s\n\n", file_name, time_out);
 
@@ -526,6 +619,7 @@ int main(int argc, char* argv[]) {
 		  exit(EXIT_FAILURE);
 	    }
 	    
+
 	    if( remove(bpseq_file) != 0 ){    /* Exception Handling */ 
 		  fprintf(stderr, "Error in function %s()... file deletion error.\n", __func__);
 		  exit(EXIT_FAILURE);

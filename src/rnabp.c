@@ -18,56 +18,80 @@
     }
     void bp_fprint_short(struct basepair* self, FILE* fp, char is_target, struct atom* met, struct atom* water, char sec_seq, char* loc){
         char str[3] = "> ";
+        char secseq[10];
         if(water != NULL){
             strcpy(str,"W-");
         }
         char blank[200] = "               ";
-	if(sec_seq == 'N'){
-	      sec_seq = 'H';
+        char atomloc[8];
+	if(sec_seq == 'N' || sec_seq == 'H' || sec_seq == 'T'){
+	      strcpy(secseq,"HELX");
+	}else if(sec_seq == 'C'){
+	      strcpy(secseq,"COIL");
+	}else{
+	      strcpy(secseq,"STEM");
 	}
-
+    sprintf(atomloc,"(%s)",loc);
         if(self->numbp <= 0){
             if(is_target == 'T'){
-                    fprintf(fp, "MOTF  %6d  %-3s %2s-%2s %c %3s-           %-3s        %3s  %6d\n",met->resid, met->chain,
+                    
+                    fprintf(fp, "LB  %6d  %-3s %2s-%2s %-5s %3s-      %-8s                   %3s  %6d\n",
+                            met->resid,
+                            met->chain,
                             met->resname,
                             str,
-                            sec_seq,
-                            self->resname, loc, self->chain, self->cifid);
+                            atomloc,
+                            self->resname,
+                            secseq, 
+                    
+                            self->chain, 
+                            self->cifid);
             }else{
 
-                fprintf(fp,"MOTF     %s%c %3s-\n", blank, sec_seq,self->resname);
+                fprintf(fp,"LO          %s %3s-           %-8s\n", blank, self->resname, secseq);
 
             }
             return;
         }else{
             if(is_target == 'T'){
                 if(self->numbp > 1){
-                    fprintf(fp, "MOTF  %6d  %-3s %2s-%2s %c %3s-%-3s %s   %-3s  +%d    %3s  %6d\n",met->resid,
+                    fprintf(fp, "LB  %6d  %-3s %2s-%2s %-5s %3s-%-3s %s   %-8s   +%d    %3s  %6d\n",
+                            met->resid,
                             met->chain,
                             met->resname,
                             str,
-                            sec_seq,
+                            atomloc, 
                             self->resname,
                             self->bp[0]->resname,
-                            self->bp[0]->name, loc, self->numbp-1, self->chain, self->cifid);
+                            self->bp[0]->name, 
+                            secseq,
+                            self->numbp-1, 
+                            self->chain, 
+                            self->cifid);
                 }else{
-                    fprintf(fp, "MOTF  %6d  %-3s %2s-%2s %c %3s-%-3s %s   %-3s        %3s  %6d\n",met->resid, met->chain,
+                    fprintf(fp, "LB  %6d  %-3s %2s-%2s %-5s %3s-%-3s %s   %-8s         %3s  %6d\n",
+                            met->resid, 
+                            met->chain,
                             met->resname,
                             str,
-                            sec_seq,
+                            atomloc,                            
                             self->resname,
                             self->bp[0]->resname,
-                            self->bp[0]->name, loc,
-			    self->chain,
+                            self->bp[0]->name, 
+                            secseq,
+			                self->chain,
                             self->cifid);
                 }
 
             }else{
 
-                fprintf(fp, "MOTF     %s%c %3s-%-3s %s \n",blank, sec_seq, 
+                fprintf(fp, "LO          %s %3s-%-3s %s   %-8s\n",
+                blank, 
+                
 			    self->resname, 
 			    self->bp[0]->resname, 
-			    self->bp[0]->name);
+			    self->bp[0]->name,
+			    secseq);
 
             }
         }
@@ -90,11 +114,12 @@
 
     void bp_fprint(struct basepair* self, FILE* fp){
 	  if(self->numbp <= 0) return;
-	  fprintf(fp, "%6d  %-3s",
+	  /*fprintf(fp, "%6d  %-3s",
 		      self->cifid,
-		      self->chain);
-	  for(int i=0; i<self->numbp; ++i){
-		fprintf(fp, "  %6d  %-3s     %s:%s-%s  %6.2f  ",
+		      self->chain);*/
+		      
+	  for(int i=0; i<1 /*self->numbp*/; ++i){
+		fprintf(fp, " %5d %-3s  %s%s %s  %4.2f  ",
 			    self->bp[i]->cifid,
 			    self->bp[i]->chain,
 			    self->resname,

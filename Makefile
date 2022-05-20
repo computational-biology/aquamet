@@ -2,13 +2,14 @@
 # TODO: Move `libmongoclient.a` to /usr/local/lib so this can work on production servers
 #
  
-CC := cc # This is the main compiler
+CC := gcc  # This is the main compiler
 # CC := clang --analyze # and comment out the linker last line for sanity
 FF := gfortran
 SRCDIR := src
 BUILDDIR := build
+TARGETDIR := bin
 TARGET := bin/aquamet.linux
-LINKCC := cc
+# LINKCC := cc
  
 SRCEXT := c
 FOREXT := f
@@ -16,11 +17,12 @@ SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT) )
 SOURCESF := $(shell find $(SRCDIR) -type f -name *.$(FOREXT) )
 OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))   $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCESF:.$(FOREXT)=.o))
 CFLAGS := -g -Wall -static
-LIB := -lm -lgfortran -lquadmath #-pthread -lmongoclient -L lib -lboost_thread-mt -lboost_filesystem-mt -lboost_system-mt
+LIB := -lm -lgfortran -lquadmath #-mcmodel=large #-pthread -lmongoclient -L lib -lboost_thread-mt -lboost_filesystem-mt -lboost_system-mt
 # INC := -I include
 
 $(TARGET): $(OBJECTS)
 	@echo " Linking..."
+	@mkdir -p $(TARGETDIR)
 	@echo " $(CC) $^ -o $(TARGET) $(LIB)"; $(CC) $^ -o $(TARGET) $(LIB)
 
 $(BUILDDIR)/%.o: $(SRCDIR)/%.$(SRCEXT)

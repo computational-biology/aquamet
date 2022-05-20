@@ -19,6 +19,8 @@ void sysparams_init(struct sysparams* self){
 		  strcpy(self->corparam, "-dummyval");
 		  strcpy(self->nmrparam, "-dummyval");
           strcpy(self->nmrvalparam, "-dummyval");
+          self->nuparm_bp = 'F';
+          self->download = 0;
 	    }
 	    void syspar_print_params(struct sysparams* self, FILE* fp)
 	    {

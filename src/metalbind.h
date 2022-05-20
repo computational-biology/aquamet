@@ -19,6 +19,7 @@
 #include "metaldefs.h"
 #include "rnabp.h"
 #include "util.h"
+#include "libnuparm.h"
 
 #define MAX_SIZE 90
 #define MAX_PROX 400
@@ -204,6 +205,7 @@ void comp_metal_sites(struct molecule* met,
                       struct molecule* hoh,
                       struct molecule* rna,
                       struct rnabp* rnabp,
+                      struct nuparm* nuparm,
                       struct molecule* pro,
                       struct parameters* prm,
                       struct structure* sec,

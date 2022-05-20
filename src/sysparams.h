@@ -41,6 +41,8 @@ struct sysparams{
 	    char file_dir[512];
 	    char accn[100];
 	    char ext[20];
+	    char nuparm_bp;
+	    int download;
 };
 	    void sysparams_init(struct sysparams* self);
 	    void syspar_print_params(struct sysparams* self, FILE* fp);
