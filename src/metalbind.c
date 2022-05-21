@@ -372,6 +372,45 @@ void site_fprint_wmed_basepair(struct site* self, FILE *fp, struct rnabp *bp, in
 
 }
 
+void site_bp_flag(struct site* self, struct rnabp* bp,int detail_flag, int* bpflag,
+	    int allbaseflag){
+      if(bp == NULL) return;
+      int resindx;
+      for(int i=0; i< self->ligand.size; ++i){
+	    if(self->ligand.restype[i] == 'N'){
+		  resindx = self->ligand.resindx[i];
+		  struct molecule* mol = self->ligand.mol[i];
+		  struct atom* atm = mol->residue[resindx].atom +self->ligand.offset[i];
+		  if(atm->resid != bp->bp[resindx].cifid){
+			fprintf(stderr, "Error... invalid mapping in RNA and Basepair...\n");
+			exit(EXIT_FAILURE);
+		  }
+		  if(allbaseflag ==0){
+			if(bp->bp[resindx].numbp <= 0) continue;
+		  }
+		  char location[5] = "---";
+		  if(self->ligand.loc[i] == 'N'){
+			strcpy(location,"NUC");
+		  }else if(self->ligand.loc[i] == 'P'){
+			strcpy(location, "PHP");
+		  }else if(self->ligand.loc[i] == 'S'){
+			strcpy(location, "SUG");
+		  }
+		  else{
+			fprintf(stderr, "Error in function %s()... invalid ligand type found.\n", __func__);
+			exit(EXIT_FAILURE);
+		  }
+		  if(detail_flag == 0){
+			if(strcmp(location, "PHP") ==0) continue;
+			if(strcmp(location, "SUG") == 0 && strcmp(atm->loc,"O2*") != 0) continue;
+
+		  }
+
+
+		  *bpflag = 1;
+	    }
+      }
+}
 void site_fprint_basepair(struct site* self, FILE* fp, struct rnabp* bp, int* flag, int detail_flag, int* bpflag,
 	    int allbaseflag){
       if(bp == NULL) return;
@@ -733,6 +772,115 @@ void site_fprint_angle(struct site* self, FILE* fp){
       fprintf(fp, "#\n");
 }
 
+void wmed_fprint_pml(struct site* self, struct rnabp* bp, int ligindex, FILE* fp){
+      int i = ligindex;
+      char loca[10];
+      struct atom* a = self->wmed.ligand.mol[i]->residue[self->wmed.ligand.resindx[i]].atom+ self->wmed.ligand.offset[i];
+      int resindx = self->wmed.ligand.resindx[i];
+      
+      if(self->wmed.ligand.restype[i] == 'N'){
+	    if(self->wmed.ligand.loc[i] == 'N'){
+		  if(bp->bp[resindx].numbp > 0){ 
+			fprintf(fp, "select tmp, ");
+			bp_fprint_pymol(fp, bp->bp + resindx);
+			fprintf(fp, "color white, tmp\n");
+			fprintf(fp, "set cartoon_ring_mode, 2, tmp\n");
+			fprintf(fp, "set cartoon_ladder_mode, 0, tmp\n");
+//			fprintf(fp, "color red, tmp\n");
+			fprintf(fp, "util.cbag tmp\n");
+			fprintf(fp, "show_as cartoon, tmp\n");
+			fprintf(fp, "show line, tmp\n");
+		  }else{
+			fprintf(fp, "select tmp,  (resi %d and chain %s)\n", a->resid, a->chain);
+			fprintf(fp, "set cartoon_ring_mode, 2, tmp\n");
+			fprintf(fp, "set cartoon_ladder_mode, 0, tmp\n");
+			fprintf(fp, "color blue, tmp\n");
+//			fprintf(fp, "util.cbay tmp\n");
+			fprintf(fp, "show_as cartoon, tmp\n");
+			fprintf(fp, "show line, tmp\n");
+		  }
+
+	    }else{
+		  return;
+	    }//else if(self->wmed.ligand.loc[i] == 'P'){
+//		  fprintf(fp, "select tmp,  (resi %d and chain %s)\n", a->resid, a->chain);
+//		  fprintf(fp, "set cartoon_ring_mode, 2, tmp\n");
+//		  fprintf(fp, "set cartoon_ladder_mode, 0, tmp\n");
+//		  fprintf(fp, "color green, tmp\n");
+//		  fprintf(fp, "util.cbag tmp\n");
+//		  fprintf(fp, "show_as cartoon, tmp\n");
+//		  fprintf(fp, "show line, tmp\n");
+//	    }else if(self->wmed.ligand.loc[i] == 'S'){
+//		  fprintf(fp, "select tmp,  (resi %d and chain %s)\n", a->resid, a->chain);
+//		  fprintf(fp, "set cartoon_ring_mode, 2, tmp\n");
+//		  fprintf(fp, "set cartoon_ladder_mode, 0, tmp\n");
+//		  fprintf(fp, "color red, tmp\n");
+//		  fprintf(fp, "util.cbao tmp\n");
+//		  fprintf(fp, "show_as cartoon, tmp\n");
+//		  fprintf(fp, "show line, tmp\n");
+//	    }else{
+//		  fprintf(stderr,"Error... Wrong type given\n");
+//		  exit(EXIT_FAILURE);
+//	    }
+      }else if(self->wmed.ligand.restype[i] == 'P'){
+	    fprintf(fp, "select tmp,  (resi %d and chain %s)\n", a->resid, a->chain);
+	    fprintf(fp, "set cartoon_ring_mode, 2, tmp\n");
+	    fprintf(fp, "set cartoon_ladder_mode, 0, tmp\n");
+	    fprintf(fp, "color blue, tmp\n");
+	    fprintf(fp, "set cartoon_color, blue, tmp\n");
+	    fprintf(fp, "show_as cartoon, tmp\n");
+	    fprintf(fp, "show line, tmp\n");
+      }else if(self->wmed.ligand.restype[i] == 'W'){
+	    strcpy(loca, "H2O");
+	    return;
+      }else{
+	    fprintf(stderr,"Error... Wrong restype given\n");
+	    exit(EXIT_FAILURE);
+      }
+
+      int k = self->wmed.waterindx[i];
+      struct atom* water = self->ligand.mol[k]->residue[self->ligand.resindx[k]].atom + self->ligand.offset[k];
+      assert(strcmp(water->resname, "HOH")==0);
+
+      if(self->wmed.ligand.mol[i]->residue[self->wmed.ligand.resindx[i]].size >= 1){
+          char loc[5];
+	    strcpy(loc, a->loc);
+          if(strlen(loc) == 3 && loc[2] == '*'){
+	        loc[2] = '\'';
+	    }
+	    fprintf(fp, "select wmed, (resi %d and chain %s and name %s)\n", a->resid, a->chain, loc);
+	    fprintf(fp, "set sphere_scale, 0.40, wmed\n");
+	    fprintf(fp, "show spheres,  wmed\n");
+	
+	
+	    fprintf(fp, "distance dwmed,  (resi %d and chain %s),  (resi %d and chain %s and name %s), 15, 4\n",
+			water->resid, water->chain, a->resid, a->chain, loc);
+	    fprintf(fp, "set dash_width, 1.0, dwmed\n");
+	    fprintf(fp, "set dash_gap, 0.2, dwmed\n");
+	    fprintf(fp, "set dash_color, red, dwmed\n");
+	    fprintf(fp, "hide label, dwmed\n");
+      }else{
+
+	    fprintf(fp, "select wmed, (resi %d and chain %s)\n", a->resid, a->chain);
+	    fprintf(fp, "color white, wmed\n");
+	    fprintf(fp, "set cartoon_ring_mode, 2, wmed\n");
+	    fprintf(fp, "set cartoon_ladder_mode, 0, wmed\n");
+	    fprintf(fp, "set cartoon_color, white, wmed\n");
+	    fprintf(fp, "show_as cartoon, wmed\n");
+	    fprintf(fp, "show line, wmed\n");
+	    fprintf(fp, "select wmed, (resi %d and chain %s and name %s)\n", a->resid, a->chain, a->loc);
+	    fprintf(fp, "set sphere_scale, 0.40, wmed\n");
+	    fprintf(fp, "show spheres,  wmed\n");
+	    fprintf(fp, "distance dwmed,  (resi %d and chain %s),  (resi %d and chain %s and name %s), 15, 4\n",
+			water->resid, water->chain, a->resid, a->chain, a->loc);
+	    fprintf(fp, "set dash_width, 1.0, dwmed\n");
+	    fprintf(fp, "set dash_gap, 0.2, dwmed\n");
+	    fprintf(fp, "set dash_color, red, dwmed\n");
+	    fprintf(fp, "hide label, dwmed\n");
+      }
+
+
+}
 void ligand_fprint_pml(struct site* self, struct rnabp* bp, int ligindex, FILE* fp){
       int i = ligindex;
       char loca[10];
@@ -747,7 +895,8 @@ void ligand_fprint_pml(struct site* self, struct rnabp* bp, int ligindex, FILE* 
 			fprintf(fp, "color white, tmp\n");
 			fprintf(fp, "set cartoon_ring_mode, 2, tmp\n");
 			fprintf(fp, "set cartoon_ladder_mode, 0, tmp\n");
-			fprintf(fp, "util.cbaw tmp\n");
+			fprintf(fp, "color red, tmp\n");
+//			fprintf(fp, "util.cbaw tmp\n");
 			fprintf(fp, "show_as cartoon, tmp\n");
 			fprintf(fp, "show line, tmp\n");
 		  }else{
@@ -755,31 +904,32 @@ void ligand_fprint_pml(struct site* self, struct rnabp* bp, int ligindex, FILE* 
 			fprintf(fp, "set cartoon_ring_mode, 2, tmp\n");
 			fprintf(fp, "set cartoon_ladder_mode, 0, tmp\n");
 			fprintf(fp, "color yellow, tmp\n");
-			fprintf(fp, "util.cbay tmp\n");
+//			fprintf(fp, "util.cbay tmp\n");
 			fprintf(fp, "show_as cartoon, tmp\n");
 			fprintf(fp, "show line, tmp\n");
 		  }
 
-	    }else if(self->ligand.loc[i] == 'P'){
-		  fprintf(fp, "select tmp,  (resi %d and chain %s)\n", a->resid, a->chain);
-		  fprintf(fp, "set cartoon_ring_mode, 2, tmp\n");
-		  fprintf(fp, "set cartoon_ladder_mode, 0, tmp\n");
-		  fprintf(fp, "color green, tmp\n");
-		  fprintf(fp, "util.cbag tmp\n");
-		  fprintf(fp, "show_as cartoon, tmp\n");
-		  fprintf(fp, "show line, tmp\n");
-	    }else if(self->ligand.loc[i] == 'S'){
-		  fprintf(fp, "select tmp,  (resi %d and chain %s)\n", a->resid, a->chain);
-		  fprintf(fp, "set cartoon_ring_mode, 2, tmp\n");
-		  fprintf(fp, "set cartoon_ladder_mode, 0, tmp\n");
-		  fprintf(fp, "color red, tmp\n");
-		  fprintf(fp, "util.cbao tmp\n");
-		  fprintf(fp, "show_as cartoon, tmp\n");
-		  fprintf(fp, "show line, tmp\n");
-	    }else{
-		  fprintf(stderr,"Error... Wrong type given\n");
-		  exit(EXIT_FAILURE);
 	    }
+	    //else if(self->ligand.loc[i] == 'P'){
+//		  fprintf(fp, "select tmp,  (resi %d and chain %s)\n", a->resid, a->chain);
+//		  fprintf(fp, "set cartoon_ring_mode, 2, tmp\n");
+//		  fprintf(fp, "set cartoon_ladder_mode, 0, tmp\n");
+//		  fprintf(fp, "color green, tmp\n");
+//		  fprintf(fp, "util.cbag tmp\n");
+//		  fprintf(fp, "show_as cartoon, tmp\n");
+//		  fprintf(fp, "show line, tmp\n");
+//	    }else if(self->ligand.loc[i] == 'S'){
+//		  fprintf(fp, "select tmp,  (resi %d and chain %s)\n", a->resid, a->chain);
+//		  fprintf(fp, "set cartoon_ring_mode, 2, tmp\n");
+//		  fprintf(fp, "set cartoon_ladder_mode, 0, tmp\n");
+//		  fprintf(fp, "color red, tmp\n");
+//		  fprintf(fp, "util.cbao tmp\n");
+//		  fprintf(fp, "show_as cartoon, tmp\n");
+//		  fprintf(fp, "show line, tmp\n");
+//	    }else{
+//		  fprintf(stderr,"Error... Wrong type given\n");
+//		  exit(EXIT_FAILURE);
+//	    }
       }else if(self->ligand.restype[i] == 'P'){
 	    fprintf(fp, "select tmp,  (resi %d and chain %s)\n", a->resid, a->chain);
 	    fprintf(fp, "set cartoon_ring_mode, 2, tmp\n");
@@ -806,7 +956,8 @@ void ligand_fprint_pml(struct site* self, struct rnabp* bp, int ligindex, FILE* 
 	    fprintf(fp, "show spheres,  ligand\n");
 	
 	
-	    fprintf(fp, "distance d1,  (resi %d and chain %s),  (resi %d and chain %s and name %s), 15, 4\n",  self->metal->resid, self->metal->chain, a->resid, a->chain, loc);
+	    fprintf(fp, "distance d1,  (resi %d and chain %s),  (resi %d and chain %s and name %s), 15, 4\n",
+			self->metal->resid, self->metal->chain, a->resid, a->chain, loc);
 	    fprintf(fp, "set dash_width, 1.0, d1\n");
 	    fprintf(fp, "set dash_gap, 0.2, d1\n");
 	    //fprintf(fp, "set dash_color, white, d1\n");
@@ -820,7 +971,8 @@ void ligand_fprint_pml(struct site* self, struct rnabp* bp, int ligindex, FILE* 
 	    fprintf(fp, "set cartoon_color, white, ligand\n");
 	    fprintf(fp, "show_as cartoon, ligand\n");
 	    fprintf(fp, "show line, ligand\n");
-	    fprintf(fp, "select ligand, (resi %d and chain %s and name %s)\n", a->resid, a->chain, a->loc);
+	    fprintf(fp, "select ligand, (resi %d and chain %s and name %s)\n",
+			a->resid, a->chain, a->loc);
 	    fprintf(fp, "set sphere_scale, 0.40, ligand\n");
 	    fprintf(fp, "show spheres,  ligand\n");
 	    fprintf(fp, "distance d1,  (resi %d and chain %s),  (resi %d and chain %s and name %s), 15, 4\n",  self->metal->resid, self->metal->chain, a->resid, a->chain, a->loc);
@@ -833,6 +985,25 @@ void ligand_fprint_pml(struct site* self, struct rnabp* bp, int ligindex, FILE* 
 
 }
 
+
+void site_fprint_pml_wmed(struct site* self, struct rnabp* bp, FILE* fp)
+{
+      if(self->ligand.size == 0) return;
+      fprintf(fp, "select %s%d%s, ",self->metal->resname, self->metal->resid, self->metal->chain);
+      fprintf(fp, "(resi %d and chain %s)\n", self->metal->resid, self->metal->chain);
+      fprintf(fp, "set sphere_scale, 0.40, %s%d%s\n",self->metal->resname, self->metal->resid, self->metal->chain);
+      fprintf(fp, "show spheres, %s%d%s\n",self->metal->resname, self->metal->resid, self->metal->chain);
+      //fprintf(fp, "select %s%d%sligand, ",self->metal->resname, self->metal->resid, self->metal->chain);
+      for(int i=0; i<self->ligand.size; ++i){
+	    ligand_fprint_pml(self, bp, i, fp);
+
+      }
+      for(int i=0; i<self->wmed.size; ++i){
+	    wmed_fprint_pml(self, bp, i, fp);
+      }
+
+      //fprintf(fp, "TOTAL LIGANDS FOR %3s: %4ld",self->metal->resname, ligand.size);
+}
 
 void site_fprint_pml(struct site* self, struct rnabp* bp, FILE* fp)
 {
@@ -1167,6 +1338,9 @@ void site_comp_water_mediated(struct site* self, char rule, struct current_param
       includist2 = mprm->hb_dst + mprm->o_dst2 + 1.0;
       includist2 *= includist2;
       double hbdst2 = (mprm->hb_dst +0.0001) * (mprm->hb_dst + 0.0001);
+
+      
+      
       for(int i=0; i<self->ligand.size; ++i){
 	    if(self->ligand.restype[i] != 'W') continue;
 	    struct residue* wres = self->ligand.mol[i]->residue + self->ligand.resindx[i];
@@ -1177,6 +1351,8 @@ void site_comp_water_mediated(struct site* self, char rule, struct current_param
 		  for(int k=0; k<res->size; ++k){
 			struct atom* curratm = res->atom + k;
 			metdist2 = distsqr(self->metal->center, curratm->center);
+			
+			
 			wdist2 = distsqr(water->center, curratm->center);
 			int flag = 1;
 			if(rule != '0'){
@@ -1471,6 +1647,13 @@ void comp_metal_sites(struct molecule* met,
 
 	    bparray[k] = 0;
       }
+      for(int i=0; i<nsites; ++i){
+	    int bpflag = 0;
+	    site_bp_flag(sites+i,rnabp,runpar->detailflag, &bpflag, runpar->allbaseflag);
+	    if(bpflag == 1){
+		  bparray[i] = 1;
+	    }
+      }
       int flag=0;
       /*for(int i=0; i<nsites; ++i){
 	    int bpflag = 0;
@@ -1505,7 +1688,7 @@ void comp_metal_sites(struct molecule* met,
       }
 */
 
-/*      char pmlfp_file_name[512];
+      char pmlfp_file_name[512];
       file_name_join(pmlfp_file_name, file_path, file_name, ".pml");
 
       FILE	*pmlfp;										
@@ -1536,9 +1719,12 @@ void comp_metal_sites(struct molecule* met,
 	  //  fprintf(pmlfp, "select water, solvent\n");
 	  //  fprintf(pmlfp, "show cartoon, %s\n", file_name);
       for(int i=0; i<nsites; ++i){
-	    if(runpar->detailflag == 0 && bparray[i] == 0) continue; 
-	    if(runpar->detailflag == 1 && bparray[i] == 0) continue; 
-	    site_fprint_pml(sites+i, rnabp, pmlfp);
+
+	    
+//	    if(runpar->detailflag == 0 && bparray[i] == 0) continue; 
+//	    if(runpar->detailflag == 1 && bparray[i] == 0) continue; 
+//	    site_fprint_pml(sites+i, rnabp, pmlfp);
+	    site_fprint_pml_wmed(sites+i, rnabp, pmlfp);
 
       }
 
@@ -1546,7 +1732,7 @@ void comp_metal_sites(struct molecule* met,
 	    fprintf ( stderr, "couldn't close file '%s'; %s\n",
 			pmlfp_file_name, strerror(errno) );
 	    exit (EXIT_FAILURE);
-      }  */
+      }  
 
 
 
