@@ -48,17 +48,27 @@ int check_internet_conn(void) {
 
     return 0;
 }
-void fetch_rcsb(char* accn)
+void fetch_rcsb(char* accn, char* ext)
 {
       FILE* fp = stdout;
       fprintf(fp, "Preparing file dowinload......\n");
       fprintf(fp, "Checking internet connection......\n");
       if(check_internet_conn() == 0){
           fprintf(fp, "Connection Detected...\n");
-          fprintf(fp, "Download started... (This may take several minutes. Please wait).\n");
+          fprintf(fp, "Download started... accn:%s%s (This may take several minutes. Please wait).\n", accn,ext);
           char cmd[512];
-          sprintf(cmd,"curl -s -f https://files.rcsb.org/download/%s -o %s", accn, accn);
+          sprintf(cmd,"curl -# -s -f https://files.rcsb.org/download/%s%s -o %s%s", accn, ext, accn, ext);
+          /*char url[512];
+          
+          sprintf(url,"https://files.rcsb.org/download/%s.cif", accn);
+          int pid = fork();
+          if(pid == 0){
+              execlp("curl", "-s", "-f", "https://files.rcsb.org/download/1ehz.cif", "-o", accn, NULL);
+          }else{
+              wait(&pid);
+          }*/
           system(cmd);
+
           fprintf(fp, "Download finished...\n");
           fprintf(fp, "Starting Computations...\n");
           

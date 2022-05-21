@@ -271,7 +271,7 @@ int main(int argc, char* argv[]) {
 	    now(time_out);
 	    printf("            CURRENT FILE: %s         STARTED:%d of %d at %s\n", file_name, i+1, file_count, time_out);
 	    if(syspar.download == 1){
-		  fetch_rcsb(syspar.accn);
+		  fetch_rcsb(syspar.accn, ext);
 	    }
 	    callbpfindc(syspar.cifparam, syspar.accnparam, syspar.htparam, 
 			syspar.hdparam, syspar.hdvalparam, syspar.angparam, 

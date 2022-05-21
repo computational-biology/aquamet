@@ -27,9 +27,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include<unistd.h>
 
 #define FETCH_BUFF_SIZE (128)
 int check_internet_conn(void);
-void fetch_rcsb(char* accn);
+void fetch_rcsb(char* accn, char* ext);
 
 #endif   /* ----- #ifndef __fetch_H__  ----- */
