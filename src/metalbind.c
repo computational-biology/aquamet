@@ -303,11 +303,11 @@ void site_fprint_wmed_basepair(struct site* self, FILE *fp, struct rnabp *bp, in
 
 	    if(*flag == 0){
 		  *flag = 1;
-		    fprintf(fp, "  |     Metal    | Water |   Base1      | Atom, Met-H2O & H2O-Atom  |       Base2 pair                 |\n");
-		    fprintf(fp, "  |    Detail    | Detail|   Details    | dist & Met-H2O-Atom Algle |       Details                    |\n");
-  fprintf(fp, "  ------------------------------------------------------------------------------------------------------\n");
-  fprintf(fp, "      id ch  mtl  id  ch   res  ch   res atm lc  M-W   W-A   ang     bp      id ch    base-pair Q-Indx |\n");
-  fprintf(fp, "  ------------------------------------------------------------------------------------------------------\n");
+		    fprintf(fp, "  |     Metal    | Water |   Base1      | Atom, Met-H2O & H2O-Atom  |       Base2 pair                  |\n");
+		    fprintf(fp, "  |    Detail    | Detail|   Details    | dist & Met-H2O-Atom Algle |       Details                     |\n");
+  fprintf(fp, "  -------------------------------------------------------------------------------------------------------\n");
+  fprintf(fp, "      id ch  mtl  id  ch   res  ch   res atm lc  M-W   W-A   ang     bp      id ch     base-pair Q-Indx  |\n");
+  fprintf(fp, "  -------------------------------------------------------------------------------------------------------\n");
 //		  fprintf(fp, "\n\n      |  Metal Detail   | Water Details   |      Base Pair Details                  |"
 //			      "  outcome      "
 //			      "    |\n");
@@ -991,7 +991,7 @@ void site_fprint_pml_wmed(struct site* self, struct rnabp* bp, FILE* fp)
       if(self->ligand.size == 0) return;
       fprintf(fp, "select %s%d%s, ",self->metal->resname, self->metal->resid, self->metal->chain);
       fprintf(fp, "(resi %d and chain %s)\n", self->metal->resid, self->metal->chain);
-      fprintf(fp, "set sphere_scale, 0.40, %s%d%s\n",self->metal->resname, self->metal->resid, self->metal->chain);
+      fprintf(fp, "set sphere_scale, 0.20, %s%d%s\n",self->metal->resname, self->metal->resid, self->metal->chain);
       fprintf(fp, "show spheres, %s%d%s\n",self->metal->resname, self->metal->resid, self->metal->chain);
       //fprintf(fp, "select %s%d%sligand, ",self->metal->resname, self->metal->resid, self->metal->chain);
       for(int i=0; i<self->ligand.size; ++i){
@@ -1713,6 +1713,7 @@ void comp_metal_sites(struct molecule* met,
       fprintf(pmlfp, "set cartoon_ring_mode, 0, polyall\n");
       fprintf(pmlfp, "set cartoon_ladder_mode, 0, polyall\n");
       fprintf(pmlfp, "show cartoon, polyall\n");
+      fprintf(pmlfp, "set cartoon_nucleic_acid_color, red\n");
 
       //    fprintf(pmlfp, "select protein, polymer.protein\n");
 	  //  fprintf(pmlfp, "select nucleic, polymer.nucleic\n");

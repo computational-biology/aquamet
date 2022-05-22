@@ -33,20 +33,22 @@ int main(int argc, char* argv[]) {
       runpar.allbaseflag = 0;
       int input_file_flag = 0;
 
-      char* nucdir = getenv("NUCLEIC_ACID_DIR");
-      if(nucdir == NULL){
-	    fprintf(stderr, "Error... NUCLEIC_ACID_DIR not Defined.\n");
-	    exit(EXIT_FAILURE);
-      }
-      char nucfiledir[512];
-      strcpy(nucfiledir,nucdir);
+//      char* nucdir = getenv("NUCLEIC_ACID_DIR");
+//      if(nucdir == NULL){
+//	    fprintf(stderr, "Error... NUCLEIC_ACID_DIR not Defined.\n");
+//	    exit(EXIT_FAILURE);
+//      }
+//      char nucfiledir[512];
+//      strcpy(nucfiledir,nucdir);
       //Paremeters metparams = Paremeters("/usr/local/bin/metal_params.cif");
 
-      char param_path[512];
-      strcpy(param_path, nucfiledir);
-      strcat(param_path, "metal.params");
+//      char param_path[512];
+//      strcpy(param_path, nucfiledir);
+//      strcat(param_path, "metal.params");
+//      struct parameters metparams;
+//      parameters_create(&metparams, param_path);
       struct parameters metparams;
-      parameters_create(&metparams, param_path);
+      parameters_create_default(&metparams);
       printf("Running Aquamet. A orgram to detect water mediated metal-nucleic acid interactions.\n");
 
       char file_array[3000][512];

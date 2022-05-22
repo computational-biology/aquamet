@@ -119,7 +119,7 @@
 		      self->chain);*/
 		      
 	  for(int i=0; i<1 /*self->numbp*/; ++i){
-		fprintf(fp, " %5d %-3s  %s%s %s  %4.2f  ",
+		fprintf(fp, " %5d %-3s  %3s-%-3s %s  %4.2f  ",
 			    self->bp[i]->cifid,
 			    self->bp[i]->chain,
 			    self->resname,
