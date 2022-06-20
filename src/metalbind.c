@@ -1655,7 +1655,7 @@ void comp_metal_sites(struct molecule* met,
 	    }
       }
       int flag=0;
-      /*for(int i=0; i<nsites; ++i){
+     for(int i=0; i<nsites; ++i){
 	    int bpflag = 0;
 	    site_fprint_basepair(sites+i,runpar->metalfp, rnabp, &flag, runpar->detailflag, &bpflag, runpar->allbaseflag);
 	    if(bpflag == 1){
@@ -1686,7 +1686,7 @@ void comp_metal_sites(struct molecule* met,
 	    site_fprint_angle(sites+i,runpar->metdetailfp);
 	    //        sites[i].fprint_wmed(fp);
       }
-*/
+
 
       char pmlfp_file_name[512];
       file_name_join(pmlfp_file_name, file_path, file_name, ".pml");
